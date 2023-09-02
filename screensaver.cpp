@@ -176,7 +176,7 @@ int main(int argc, char* argv[]) {
         textRect.w = textSurface->w; // Ancho
         textRect.h = textSurface->h; // Alto
 
-        // TTF_CloseFont(font);
+        // Dibujamos el texto
         SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
         SDL_DestroyTexture(textTexture);
         SDL_FreeSurface(textSurface);
