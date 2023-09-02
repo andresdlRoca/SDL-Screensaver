@@ -12,7 +12,7 @@ const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
 
 // Las dimensiones del circulo
-const int CIRCLE_RADIUS = 20;
+const int CIRCLE_RADIUS = 30;
 const int MAX_CIRCLE_SPEED = 5;
 
 // Los frames por segundo
@@ -122,21 +122,26 @@ int main(int argc, char* argv[]) {
     // Creamos los circulos
     vector<Circle> circles(N);
     for(int i = 0; i < N; ++i) {
+        // Crear circulos en posiciones aleatorias 
         circles[i].x = rand() % (SCREEN_WIDTH - 2 * CIRCLE_RADIUS) + CIRCLE_RADIUS;
         circles[i].y = rand() % (SCREEN_HEIGHT - 2 * CIRCLE_RADIUS) + CIRCLE_RADIUS;
+        // Cambiar de posicion los circulos, ayuda a la animacion 
+        circles[i].xVel = rand() % (2 * MAX_CIRCLE_SPEED) - MAX_CIRCLE_SPEED; 
+        circles[i].yVel = rand() % (2 * MAX_CIRCLE_SPEED) - MAX_CIRCLE_SPEED; 
+        // Generar un color aleatorio
         circles[i].color = getRandomColor();
     }
 
     // Variable para medir FPS
     Uint32 frameStart, frameTime;
     int displayedFPS = 0;
-
+    int frame_count = 0;
     bool quit = false;
 
-
+    
     while(!quit) {
         frameStart = SDL_GetTicks();
-
+        
         // Manejo de eventos
         SDL_Event e;
         while(SDL_PollEvent(&e) != 0) {
@@ -150,18 +155,35 @@ int main(int argc, char* argv[]) {
         SDL_RenderClear(renderer);
 
         // Animacion de los circulos
+        for (int i = 0; i < N; ++i) {
+            // Actualizar la posición de cada círculo
+            circles[i].x += circles[i].xVel;
+            circles[i].y += circles[i].yVel;
+
+           // Mantener circulos dentro de los bordes de la pantalla, permite que reboten
+            if (circles[i].x - CIRCLE_RADIUS < 0 || circles[i].x + CIRCLE_RADIUS > SCREEN_WIDTH) {
+                circles[i].xVel = -circles[i].xVel; 
+            }
+            if (circles[i].y - CIRCLE_RADIUS < 0 || circles[i].y + CIRCLE_RADIUS > SCREEN_HEIGHT) {
+                circles[i].yVel = -circles[i].yVel; 
+            }
+        }
 
         // Dibujamos los circulos
         for (int i = 0; i < N; ++i) {
             SDL_SetRenderDrawColor(renderer, circles[i].color.r, circles[i].color.g, circles[i].color.b, 255);
             SDL_RenderFillCircle(renderer, circles[i].x, circles[i].y, CIRCLE_RADIUS);
         }
+        // Actualizar frames
+        frame_count ++;
 
         // Calcular los FPS
         frameTime = SDL_GetTicks() - frameStart;
 
         if(frameTime > 0) {
-            displayedFPS = 1000/frameTime;
+            displayedFPS = (frame_count*1000)/frameTime;
+            frame_count = 0;
+            printf("FPS: %d\n", displayedFPS); // mostrar frame actualizado en consola
         }
 
         // Mostrar los FPS en la esquina superior izquierda
@@ -181,6 +203,8 @@ int main(int argc, char* argv[]) {
         SDL_DestroyTexture(textTexture);
         SDL_FreeSurface(textSurface);
 
+        // Se renderiza la pantalla
+        SDL_Delay(4);
         SDL_RenderPresent(renderer);
 
     }

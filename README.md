@@ -9,7 +9,10 @@ Este programa es un screensaver interactivo implementado en C++ utilizando la bi
 ### Prerequisitos
 - libsdl2-dev
 - libsdl2-ttf-dev
-
+```
+sudo apt-get update
+sudo apt-get install libsdl2-dev libsdl2-ttf-dev
+```
 ### Dependencias
 - SDL2
 
