@@ -3,6 +3,7 @@
 #include <ctime>
 #include <cstdlib>
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 
 using namespace std;
 
@@ -12,6 +13,7 @@ const int SCREEN_HEIGHT = 480;
 
 // Las dimensiones del circulo
 const int CIRCLE_RADIUS = 20;
+const int MAX_CIRCLE_SPEED = 5;
 
 // Los frames por segundo
 const int FRAMES_PER_SECOND = 60;
@@ -87,6 +89,19 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    // Inicializamos SDL_ttf
+    if (TTF_Init() < 0) {
+        cout << "No se pudo inicializar SDL_ttf: " << TTF_GetError() << endl;
+        return 1;
+    }
+
+    // Cargamos la fuente
+    TTF_Font* font = TTF_OpenFont("slkscr.ttf", 14);
+    if (font == NULL) {
+        cout << "No se pudo cargar la fuente: " << TTF_GetError() << endl;
+        return 1;
+    }
+
     // Creamos la ventana
     SDL_Window* window = SDL_CreateWindow("Screensaver", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
     if (window == NULL) {
@@ -114,9 +129,10 @@ int main(int argc, char* argv[]) {
 
     // Variable para medir FPS
     Uint32 frameStart, frameTime;
-    int framecount =0;
+    int displayedFPS = 0;
 
     bool quit = false;
+
 
     while(!quit) {
         frameStart = SDL_GetTicks();
@@ -130,8 +146,10 @@ int main(int argc, char* argv[]) {
         }
 
         // Limpiamos la pantalla
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_SetRenderDrawColor(renderer, 0, 102, 255, 255);
         SDL_RenderClear(renderer);
+
+        // Animacion de los circulos
 
         // Dibujamos los circulos
         for (int i = 0; i < N; ++i) {
@@ -139,12 +157,29 @@ int main(int argc, char* argv[]) {
             SDL_RenderFillCircle(renderer, circles[i].x, circles[i].y, CIRCLE_RADIUS);
         }
 
-        // Mostrar FPS
+        // Calcular los FPS
         frameTime = SDL_GetTicks() - frameStart;
-        framecount++;
-        if(frameTime < 1000 / FRAMES_PER_SECOND) {
-            SDL_Delay((1000 / FRAMES_PER_SECOND) - frameTime);
+
+        if(frameTime > 0) {
+            displayedFPS = 1000/frameTime;
         }
+
+        // Mostrar los FPS en la esquina superior izquierda
+        string fpsText = "FPS: " + to_string(displayedFPS);
+        SDL_Color textColor = {255, 255, 255};
+        SDL_Surface* textSurface = TTF_RenderText_Solid(font, fpsText.c_str(), textColor);
+        SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+
+        SDL_Rect textRect;
+        textRect.x = 10; // Posicion
+        textRect.y = 10; // Posicion
+        textRect.w = textSurface->w; // Ancho
+        textRect.h = textSurface->h; // Alto
+
+        // TTF_CloseFont(font);
+        SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
+        SDL_DestroyTexture(textTexture);
+        SDL_FreeSurface(textSurface);
 
         SDL_RenderPresent(renderer);
 
@@ -154,6 +189,7 @@ int main(int argc, char* argv[]) {
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
+    TTF_Quit();
 
     return 0;
 }
