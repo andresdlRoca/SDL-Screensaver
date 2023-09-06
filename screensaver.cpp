@@ -69,7 +69,7 @@ void SDL_RenderFillCircle(SDL_Renderer* renderer, int x, int y, int radius) {
 }
 
 int main(int argc, char* argv[]) {
-    if (argc < 2) {
+    if (argc < 3) {
         cout << "Uso: " << argv[0] << " <Cantidad de circulos>" << endl;
         return 1;
     }
@@ -138,7 +138,11 @@ int main(int argc, char* argv[]) {
     int frame_count = 0;
     bool quit = false;
 
-    
+    // Contador de frames para sacar promedio de tiempo de procesamiento
+    int actual_frame = 1;
+    // Variable para guardar el tiempo de procesamiento promedio
+    double process_time = 0;
+
     while(!quit) {
         frameStart = SDL_GetTicks();
         
@@ -207,6 +211,12 @@ int main(int argc, char* argv[]) {
         SDL_Delay(4);
         SDL_RenderPresent(renderer);
 
+        // Calculo de tiempo promedio
+        Uint32 frameTime = SDL_GetTicks() - frameStart;
+        process_time = process_time == 0 ? frameTime : (process_time * (actual_frame - 1)) / actual_frame;
+        
+        // Se aumenta el numero de frames
+        actual_frame++;
     }
 
     // Liberamos recursos
@@ -214,6 +224,9 @@ int main(int argc, char* argv[]) {
     SDL_DestroyWindow(window);
     SDL_Quit();
     TTF_Quit();
+
+    // Print del tiempo de procesamiento promedio por frame
+    cout << "Tiempo de procesamiento de frame promedio: " << process_time << "ms" << endl;
 
     return 0;
 }

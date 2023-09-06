@@ -35,8 +35,6 @@ N es el numero de circulos que se dibujaran dentro de la ventana.
 ## Screensaver paralelo
 [Programa paralelo](./screensaver_parallel.cpp)
 
-Este programa es un screensaver interactivo implementado en C++ utilizando la biblioteca Simple DirectMedia Layer (SDL). El screensaver muestra varios círculos de colores que se mueven por la ventana, rebotando en las paredes de la misma. Además, muestra los frames por segundo (FPS) en la esquina superior izquierda de la pantalla para indicar la velocidad de renderización. Vale la pena mencionar que esto se realizo de manera secuencial, pero se implemento de manera paralela para comparar los resultados.
-
 ### Prerequisitos
 - libsdl2-dev
 - libsdl2-ttf-dev
@@ -53,17 +51,17 @@ sudo apt install libomp-dev
 ### Compilacion
 Para compilar el programa se debe ejecutar el siguiente comando:
 ```
-g++ screensaver.cpp -o screensaver -lSDL2main -lSDL2 -lSDL2_ttf -fopenmp
+g++ screensaver_parallel.cpp -o screensaver -lSDL2main -lSDL2 -lSDL2_ttf -fopenmp
 ```
 Las banderas que se utilizan para el compilador nos sirven para enlazar las bibliotecas de ***SDL2***, ***SDL2_ttf*** y ***OpenMP***.
 
 ### Uso
-El programa antes de ejecutarse le pedira al usuario que ingrese el numero de circulos que desea que se muestren en pantalla. Una vez que se ingrese el numero de circulos, se mostrara la ventana con los circulos moviendose junto con su respectivo contador de FPS.  
+El programa antes de ejecutarse le pedira al usuario que ingrese el numero de circulos que desea que se muestren en pantalla y el numero de threads a utilizar. Una vez que se ingresen los parametros, se mostrara la ventana con los circulos moviendose junto con su respectivo contador de FPS.  
 
-  
 N es el numero de circulos que se dibujaran dentro de la ventana.
+T es el numero de threads que se usaran para el procesamiento.
 ```
-./screensaver <N>
+./screensaver <N> <T>
 ```
 
 

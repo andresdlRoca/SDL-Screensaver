@@ -4,7 +4,7 @@
 #include <cstdlib>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
-#inlcude <omp.h>
+#include <omp.h>
 
 using namespace std;
 
@@ -50,7 +50,9 @@ void SDL_RenderFillCircle(SDL_Renderer* renderer, int x, int y, int radius) {
     rect.w = radius * 2;
     rect.h = radius * 2;
 
+    // Cambio 1: Paralelizacion del render de cada circulo
     //Dibujar el circulo
+    # pragma omp parallel for 
     for(int dy = -radius; dy <= radius; dy++) {
         // Calcular la mitad de la linea horizontal en funcion de la distancia vertical
         int lineW = static_cast<int>(sqrt(radius * radius - dy * dy) * 2 + 0.5);
@@ -65,18 +67,23 @@ void SDL_RenderFillCircle(SDL_Renderer* renderer, int x, int y, int radius) {
         lineRect.w = lineW;
         lineRect.h = 1;
 
+        # pragma omp critical
         SDL_RenderFillRect(renderer, &lineRect);
     }
 }
 
 int main(int argc, char* argv[]) {
-    if (argc < 2) {
-        cout << "Uso: " << argv[0] << " <Cantidad de circulos>" << endl;
+    if (argc < 3) {
+        cout << "Uso: " << argv[0] << " <Cantidad de circulos> <Numero de threads>" << endl;
         return 1;
     }
 
     // Inicializamos la cantidad de circulos0
     int N = atoi(argv[1]);
+
+    // Inicializamos la cantidad de threads
+    int THREADS = atoi(argv[2]);
+
 
     // Chequeamos que la cantidad de circulos sea valida
     if (N <= 0) {
@@ -139,9 +146,14 @@ int main(int argc, char* argv[]) {
     int frame_count = 0;
     bool quit = false;
 
+    // Contador de frames para sacar promedio de tiempo de procesamiento
+    int actual_frame = 1;
+    // Variable para guardar el tiempo de procesamiento promedio
+    double process_time = 0;
     
     while(!quit) {
-        frameStart = SDL_GetTicks();
+        // Resto del código de la iteración
+        Uint32 frameStart = SDL_GetTicks();
         
         // Manejo de eventos
         SDL_Event e;
@@ -155,14 +167,16 @@ int main(int argc, char* argv[]) {
         SDL_SetRenderDrawColor(renderer, 0, 102, 255, 255);
         SDL_RenderClear(renderer);
 
+        // Cambio 2: Parelilacion de animacion de circulos
         // Animacion de los circulos
-        for (int i = 0; i < N; ++i) {
+        #pragma omp parallel for num_threads(THREADS) firstprivate(CIRCLE_RADIUS, SCREEN_WIDTH, SCREEN_HEIGHT)
+        for (int i = 0; i < N; i++) {
             // Actualizar la posición de cada círculo
             circles[i].x += circles[i].xVel;
             circles[i].y += circles[i].yVel;
 
            // Mantener circulos dentro de los bordes de la pantalla, permite que reboten
-            if (circles[i].x - CIRCLE_RADIUS < 0 || circles[i].x + CIRCLE_RADIUS > SCREEN_WIDTH) {
+            if (circles[i].x - CIRCLE_RADIUS <0 || circles[i].x + CIRCLE_RADIUS > SCREEN_WIDTH) {
                 circles[i].xVel = -circles[i].xVel; 
             }
             if (circles[i].y - CIRCLE_RADIUS < 0 || circles[i].y + CIRCLE_RADIUS > SCREEN_HEIGHT) {
@@ -171,7 +185,6 @@ int main(int argc, char* argv[]) {
         }
 
         // Dibujamos los circulos
-        # pragma omp parallel for
         for (int i = 0; i < N; ++i) {
             SDL_SetRenderDrawColor(renderer, circles[i].color.r, circles[i].color.g, circles[i].color.b, 255);
             SDL_RenderFillCircle(renderer, circles[i].x, circles[i].y, CIRCLE_RADIUS);
@@ -209,6 +222,12 @@ int main(int argc, char* argv[]) {
         SDL_Delay(4);
         SDL_RenderPresent(renderer);
 
+        // Calculo de tiempo promedio
+        Uint32 frameTime = SDL_GetTicks() - frameStart;
+        process_time = process_time == 0 ? frameTime : (process_time * (actual_frame - 1)) / actual_frame;
+        
+        // Se aumenta el numero de frames
+        actual_frame++;
     }
 
     // Liberamos recursos
@@ -216,6 +235,9 @@ int main(int argc, char* argv[]) {
     SDL_DestroyWindow(window);
     SDL_Quit();
     TTF_Quit();
+
+    // Print del tiempo de procesamiento promedio por frame
+    cout << "Tiempo de procesamiento de frame promedio: " << process_time << "ms" << endl;
 
     return 0;
 }
