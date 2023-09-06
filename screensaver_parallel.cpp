@@ -11,6 +11,7 @@ using namespace std;
 // Las dimensiones de la pantalla
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
+int THREADS;
 
 // Las dimensiones del circulo
 const int CIRCLE_RADIUS = 30;
@@ -52,7 +53,7 @@ void SDL_RenderFillCircle(SDL_Renderer* renderer, int x, int y, int radius) {
 
     // Cambio 1: Paralelizacion del render de cada circulo
     //Dibujar el circulo
-    # pragma omp parallel for 
+    # pragma omp parallel for num_threads(THREADS)
     for(int dy = -radius; dy <= radius; dy++) {
         // Calcular la mitad de la linea horizontal en funcion de la distancia vertical
         int lineW = static_cast<int>(sqrt(radius * radius - dy * dy) * 2 + 0.5);
@@ -82,7 +83,7 @@ int main(int argc, char* argv[]) {
     int N = atoi(argv[1]);
 
     // Inicializamos la cantidad de threads
-    int THREADS = atoi(argv[2]);
+    THREADS = atoi(argv[2]);
 
 
     // Chequeamos que la cantidad de circulos sea valida
