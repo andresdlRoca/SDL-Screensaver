@@ -69,7 +69,7 @@ void SDL_RenderFillCircle(SDL_Renderer* renderer, int x, int y, int radius) {
 }
 
 int main(int argc, char* argv[]) {
-    if (argc < 3) {
+    if (argc < 2) {
         cout << "Uso: " << argv[0] << " <Cantidad de circulos>" << endl;
         return 1;
     }
